@@ -210,6 +210,7 @@ def feather_from_fits(
     high_res_file: Path,
     feather_centre: u.Quantity,
     feather_sigma: u.Quantity,
+    outer_uv_cut: u.Quantity | None = None,
     low_res_unit: u.Unit | None = None,
     high_res_unit: u.Unit | None = None,
 ):
@@ -236,6 +237,7 @@ def feather_from_fits(
         low_res_beam=low_res_beam,
         high_res_beam=high_res_beam,
         wcs=high_res_wcs,
+        outer_uv_cut=outer_uv_cut,
     )
 
     feathered_data = feather(
