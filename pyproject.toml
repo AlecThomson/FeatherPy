@@ -114,8 +114,13 @@ disallow_incomplete_defs = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = "astropy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = [
   "astropy.*",
+  "astropy.units",
   "radio_beam",
   "reproject",
   "scipy",
