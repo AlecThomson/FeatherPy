@@ -1,7 +1,7 @@
 """
 Copyright (c) 2024 Alec Thomson. All rights reserved.
 
-PyFeather: A python package to combine radio as
+FeatherPy: A python package to combine radio as
 """
 
 from __future__ import annotations

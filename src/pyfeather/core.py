@@ -11,12 +11,11 @@ import reproject as rp
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
+from featherpy.exceptions import ShapeError, UnitError
 from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 from radio_beam import Beam
 from scipy import fft, stats
-
-from pyfeather.exceptions import ShapeError, UnitError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

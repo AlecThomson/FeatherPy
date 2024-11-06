@@ -1,4 +1,4 @@
-# PyFeather
+# FeatherPy
 
 ```{toctree}
 :maxdepth: 2

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "PyFeather"
+name = "FeatherPy"
 authors = [
   { name = "Alec Thomson", email = "alec.thomson@csiro.au" },
 ]
@@ -56,15 +56,15 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AlecThomson/PyFeather"
-"Bug Tracker" = "https://github.com/AlecThomson/PyFeather/issues"
-Discussions = "https://github.com/AlecThomson/PyFeather/discussions"
-Changelog = "https://github.com/AlecThomson/PyFeather/releases"
+Homepage = "https://github.com/AlecThomson/FeatherPy"
+"Bug Tracker" = "https://github.com/AlecThomson/FeatherPy/issues"
+Discussions = "https://github.com/AlecThomson/FeatherPy/discussions"
+Changelog = "https://github.com/AlecThomson/FeatherPy/releases"
 
 
 [tool.hatch]
 version.source = "vcs"
-build.hooks.vcs.version-file = "src/pyfeather/_version.py"
+build.hooks.vcs.version-file = "src/featherpy/_version.py"
 
 [tool.hatch.envs.default]
 features = ["test"]
@@ -73,7 +73,7 @@ scripts.test = "pytest {args}"
 
 [tool.uv]
 dev-dependencies = [
-  "pyfeather[test]",
+  "featherpy[test]",
 ]
 
 
@@ -91,7 +91,7 @@ testpaths = [
 
 
 [tool.coverage]
-run.source = ["pyfeather"]
+run.source = ["featherpy"]
 report.exclude_also = [
   '\.\.\.',
   'if typing.TYPE_CHECKING:',
@@ -108,7 +108,7 @@ disallow_untyped_defs = false
 disallow_incomplete_defs = false
 
 [[tool.mypy.overrides]]
-module = "pyfeather.*"
+module = "featherpy.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 ignore_missing_imports = true
@@ -156,7 +156,7 @@ ignore = [
 ]
 isort.required-imports = ["from __future__ import annotations"]
 # Uncomment if using a _compat.typing backport
-# typing-modules = ["pyfeather._compat.typing"]
+# typing-modules = ["featherpy._compat.typing"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import importlib.metadata
 
-import pyfeather as m
+import featherpy as m
 
 
 def test_version():
-    assert importlib.metadata.version("pyfeather") == m.__version__
+    assert importlib.metadata.version("featherpy") == m.__version__
