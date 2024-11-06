@@ -234,7 +234,8 @@ def feather(
         )
         low_res_scale_factor = np.round(low_res_scale_factor, 3)
 
-    logger.info(f"Low resolution scale factor: {low_res_scale_factor}")
+    msg = f"Feathering with low resolution scale factor: {low_res_scale_factor}"
+    logger.info(msg)
     low_res_data_fft_corr *= low_res_scale_factor
 
     # Approximately convert 1 sigma to the slope of the sigmoid
