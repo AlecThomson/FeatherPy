@@ -53,9 +53,11 @@ repos:
     hooks:
       - id: mypy
         files: src|tests
-        args: []
+        args: ["--install-types"]
         additional_dependencies:
           - pytest
+          - matplotlib
+          - numpy
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.3.0"

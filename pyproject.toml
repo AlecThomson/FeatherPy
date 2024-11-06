@@ -29,7 +29,14 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+  "astropy>=6.0",
+  "numpy>=2",
+  "reproject",
+  "radio_beam",
+  "scipy",
+  "matplotlib",
+]
 
 [project.optional-dependencies]
 test = [
@@ -104,6 +111,16 @@ disallow_incomplete_defs = false
 module = "pyfeather.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+  "astropy.*",
+  "radio_beam",
+  "reproject",
+  "scipy",
+]
+ignore_missing_imports = true
 
 
 [tool.ruff]
