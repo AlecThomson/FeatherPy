@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import NamedTuple
+import logging
 
 import astropy.units as u
 import numpy as np
@@ -14,6 +15,14 @@ from scipy import fft, stats
 import matplotlib.pyplot as plt
 
 from pyfeather.exceptions import ShapeError, UnitError
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+logger.addHandler(ch)
+logging.captureWarnings(True)
+
 
 
 class Visibilities(NamedTuple):
@@ -130,7 +139,9 @@ def fft_data(
     low_res_data_fft_corr[~np.isfinite(low_res_data_fft_corr)] = 0
 
     if outer_uv_cut is not None:
-        low_res_data_fft_corr[uv_distance_2d > outer_uv_cut.to(u.m)] = 0
+        low_res_data_fft_corr[
+            uv_distance_2d.to(u.m).value > outer_uv_cut.to(u.m).value
+        ] = 0
 
     return Visibilities(low_res_data_fft_corr, high_res_data_fft, uv_distance_2d)
 
@@ -164,15 +175,17 @@ def feather(
         raise UnitError(msg) from e
     
     if low_res_scale_factor is None:
+        logger.info("Calculating low resolution scale factor")
         uv_start = (feather_centre + -5 * feather_sigma).to(u.m)
         uv_end = (feather_centre + 5 * feather_sigma).to(u.m)
         overlap_index = (uv_distance_2d > uv_start) & (uv_distance_2d < uv_end)
-        low_res_scale_factor = np.median(
+        low_res_scale_factor = np.nanmedian(
             np.abs(high_res_data_fft[overlap_index])
             / np.abs(low_res_data_fft_corr[overlap_index])
         )
         low_res_scale_factor = np.round(low_res_scale_factor, 3)
 
+    logger.info(f"Low resolution scale factor: {low_res_scale_factor}")
     low_res_data_fft_corr *= low_res_scale_factor
 
     # Approximately convert 1 sigma to the slope of the sigmoid
@@ -224,6 +237,11 @@ def get_data_from_fits(
         hdu = hdul[ext]
         data = hdu.data.squeeze()
         header = hdu.header
+    
+    if data.ndim != 2:
+        msg = f"Data must be 2D (got {data.ndim}D)"
+        raise ShapeError(msg)
+
     wcs = WCS(header).celestial
     beam = Beam.from_fits_header(header)
 
@@ -254,8 +272,13 @@ def jansky_per_beam_to_jansky_per_sr(
         data_jy: u.Quantity,
         beam: Beam
 ) -> u.Quantity:
-    
     return data_jy.to(u.Jy / u.sr, equivalencies=u.beam_angular_area(beam.sr))
+
+def jansky_per_sr_to_jansky_per_beam(
+        data_jy_sr: u.Quantity,
+        beam: Beam
+) -> u.Quantity:
+    return data_jy_sr.to(u.Jy / u.beam, equivalencies=u.beam_angular_area(beam.sr))
 
 def plot_feather(
         low_res_vis: np.ndarray,
@@ -381,7 +404,11 @@ def write_feathered_fits(
 ):
     header = wcs.to_header()
     header = beam.attach_to_header(header)
-    fits.writeto(output_file, feathered_data.value, header, overwrite=overwrite)
+    data_jy = jansky_per_sr_to_jansky_per_beam(
+        data_jy_sr=feathered_data, beam=beam
+    )
+    header["BUNIT"] = data_jy.unit.to_string(format="fits")
+    fits.writeto(output_file, data_jy.value, header, overwrite=overwrite)
 
 def feather_from_fits(
     low_res_file: Path,
@@ -396,11 +423,42 @@ def feather_from_fits(
     do_feather_plot: bool = False,
     overwrite: bool = False,
 ) -> None:
+    """Feather two FITS files
+
+    Args:
+        low_res_file (Path): Path to the low resolution FITS file
+        high_res_file (Path): Path to the high resolution FITS file
+        output_file (Path): Path to the output feathered FITS file
+        feather_centre (u.Quantity): Overall UV centre of the feathering function
+        feather_sigma (u.Quantity): Width of the feathering function
+        frequency (u.Quantity): Frequency of the data
+        outer_uv_cut (u.Quantity | None, optional): UV cut to apply to low res data. Defaults to None.
+        low_res_unit (u.Unit | None, optional): Units of low resolution data. Defaults to None.
+        high_res_unit (u.Unit | None, optional): Units of high resolution data. Defaults to None.
+        do_feather_plot (bool, optional): Make feather plots. Defaults to False.
+        overwrite (bool, optional): Overwrite output data. Defaults to False.
+
+    Raises:
+        FileExistsError: If output file exists and overwrite is False
+        ValueError: If outer_uv_cut is negative
+        ValueError: If outer_uv_cut is less than feather_centre
+        UnitError: If low_res_data is not in (or convertable to) Jy/beam
+        UnitError: If high_res_data is not in (or convertable to) Jy/beam
+    """
 
     if output_file.exists() and not overwrite:
         msg = f"Output file {output_file} already exists and overwrite is False"
         raise FileExistsError(msg)
     
+    if outer_uv_cut is not None:
+        if outer_uv_cut < 0:
+            msg = f"outer_uv_cut must be positive (got {outer_uv_cut})"
+            raise ValueError(msg)
+        if outer_uv_cut <= feather_centre:
+            msg = f"outer_uv_cut ({outer_uv_cut}) must be greater than feather_centre ({feather_centre})"
+            raise ValueError(msg)
+    
+
     low_res_data, low_res_beam, low_res_wcs = get_data_from_fits(
         file_path=low_res_file,
         unit=low_res_unit,
@@ -472,6 +530,7 @@ def feather_from_fits(
         )
         output_figure = output_file.with_suffix(".png")
         fig.savefig(output_figure, bbox_inches="tight", dpi=150)
+
 
     write_feathered_fits(
         output_file=output_file,
