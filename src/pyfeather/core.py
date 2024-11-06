@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import NamedTuple
-import logging
 
 import astropy.units as u
+import matplotlib.pyplot as plt
 import numpy as np
 import reproject as rp
 from astropy.io import fits
@@ -12,7 +13,6 @@ from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
 from radio_beam import Beam
 from scipy import fft, stats
-import matplotlib.pyplot as plt
 
 from pyfeather.exceptions import ShapeError, UnitError
 
