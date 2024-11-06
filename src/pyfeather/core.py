@@ -222,9 +222,9 @@ def get_data_from_fits(
 
     with fits.open(file_path) as hdul:
         hdu = hdul[ext]
-        data = hdu.data
+        data = hdu.data.squeeze()
         header = hdu.header
-    wcs = WCS(header)
+    wcs = WCS(header).celestial
     beam = Beam.from_fits_header(header)
 
     if unit is None:
