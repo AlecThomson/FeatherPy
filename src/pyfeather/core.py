@@ -77,6 +77,16 @@ def make_beam_fft(
         data_shape: tuple[int, int],
         pix_scale: u.Quantity,
 ) -> np.ndarray:
+    """Make the FFT of a beam in the same shape as the data
+
+    Args:
+        beam (Beam): The beam
+        data_shape (tuple[int, int]): Shape of the data
+        pix_scale (u.Quantity): Pixel scale (assumed to be the same in x and y)
+
+    Returns:
+        np.ndarray: Beam FFT array
+    """    
     beam_image = beam.as_kernel(
         pix_scale, x_size=data_shape[1], y_size=data_shape[0]
     ).array
@@ -92,6 +102,25 @@ def fft_data(
     wavelength: u.Quantity,
     outer_uv_cut: u.Quantity | None = None,
 ) -> Visibilities:
+    """Apply FFTs and deconvolution to the data
+
+    Args:
+        low_res_data (u.Quantity): Low resolution data (must be in Jy/sr)
+        high_res_data (u.Quantity): High resolution data (must be in Jy/sr)
+        low_res_beam (Beam): Low resolution beam
+        high_res_beam (Beam): High resolution beam
+        wcs (WCS): WCS of the data
+        wavelength (u.Quantity): Wavelength of the data
+        outer_uv_cut (u.Quantity | None, optional): UV cut to apply to low res data. Defaults to None.
+
+    Raises:
+        UnitError: If low_res_data is not in Jy/sr
+        UnitError: If high_res_data is not in Jy/sr
+        ShapeError: If the data shapes do not match
+
+    Returns:
+        Visibilities: low_res_data_fft_corr, high_res_data_fft, uv_distance_2d
+    """    
     
     # Sanity checks
     if low_res_data.unit != u.Jy / u.sr:
@@ -155,6 +184,26 @@ def feather(
     feather_sigma: u.Quantity,
     low_res_scale_factor: float | None = None,
 ) -> FeatheredData:
+    """Feather the data
+
+    Args:
+        low_res_data_fft_corr (np.ndarray): A 2D array of the low resolution data in the Fourier domain
+        high_res_data_fft (np.ndarray): A 2D array of the high resolution data in the Fourier domain
+        high_res_beam (Beam): The high resolution beam
+        uv_distance_2d (u.Quantity): A 2D array of the uv distances
+        feather_centre (u.Quantity): The centre of the feathering function (in meters)
+        feather_sigma (u.Quantity): The width of the feathering function (in meters)
+        low_res_scale_factor (float | None, optional): Scaling factor for the low res data. Defaults to None.
+
+    Raises:
+        ShapeError: If the data shapes do not match
+        UnitError: If feather_centre is not in meters
+        UnitError: If feather_sigma is not in meters
+        UnitError: If uv_distance_2d is not in meters
+
+    Returns:
+        FeatheredData: feathered_image, feathered_fft, low_res_fft_weighted, high_res_fft_weighted, low_res_weights, high_res_weights
+    """    
     if low_res_data_fft_corr.shape != high_res_data_fft.shape:
         msg = f"Data shapes do not match ({low_res_data_fft_corr.shape=}, {high_res_data_fft.shape=})"
         raise ShapeError(msg)
@@ -222,6 +271,16 @@ def reproject_low_res(
         low_res_wcs: WCS,
         high_res_wcs: WCS,
 ) -> u.Quantity:
+    """Reproject the low resolution data to the high resolution WCS
+
+    Args:
+        low_res_data (u.Quantity): Low resolution data
+        low_res_wcs (WCS): Low resolution WCS
+        high_res_wcs (WCS): High resolution WCS
+
+    Returns:
+        u.Quantity: Reprojected low resolution data
+    """    
 
     low_res_data_rp, _ = rp.reproject_adaptive((low_res_data, low_res_wcs), high_res_wcs)
 
@@ -232,7 +291,20 @@ def get_data_from_fits(
     unit: u.Unit | None = None,
     ext: int = 0,
 ) -> FitsData:
+    """Get data from a FITS file
 
+    Args:
+        file_path (Path): Path to the FITS file
+        unit (u.Unit | None, optional): Units of the data. Defaults to None.
+        ext (int, optional): FITS extension to use. Defaults to 0.
+
+    Raises:
+        ShapeError: If the data is not 2D
+        UnitError: If no unit is provided and no BUNIT keyword is found in the header
+
+    Returns:
+        FitsData: data, beam, wcs
+    """
     with fits.open(file_path) as hdul:
         hdu = hdul[ext]
         data = hdu.data.squeeze()
@@ -265,6 +337,16 @@ def kelvin_to_jansky_per_beam(
         beam: Beam, 
         frequency: u.Quantity
 ) -> u.Quantity:
+    """Convert data from Kelvin to Jansky per beam
+
+    Args:
+        data_kelvin (u.Quantity): Data in Kelvin
+        beam (Beam): Beam
+        frequency (u.Quantity): Frequency of the data
+
+    Returns:
+        u.Quantity: Data in Jansky per beam
+    """    
     
     return data_kelvin.to(u.Jy / u.beam, equivalencies=beam.jtok_equiv(frequency))
 
@@ -272,12 +354,30 @@ def jansky_per_beam_to_jansky_per_sr(
         data_jy: u.Quantity,
         beam: Beam
 ) -> u.Quantity:
+    """Convert data from Jansky per beam to Jansky per steradian
+
+    Args:
+        data_jy (u.Quantity): Data in Jansky per beam
+        beam (Beam): Beam
+
+    Returns:
+        u.Quantity: Data in Jansky per steradian
+    """    
     return data_jy.to(u.Jy / u.sr, equivalencies=u.beam_angular_area(beam.sr))
 
 def jansky_per_sr_to_jansky_per_beam(
         data_jy_sr: u.Quantity,
         beam: Beam
 ) -> u.Quantity:
+    """Convert data from Jansky per steradian to Jansky per beam
+
+    Args:
+        data_jy_sr (u.Quantity): Data in Jansky per steradian
+        beam (Beam): Beam
+
+    Returns:
+        u.Quantity: Data in Jansky per beam
+    """    
     return data_jy_sr.to(u.Jy / u.beam, equivalencies=u.beam_angular_area(beam.sr))
 
 def plot_feather(
@@ -291,6 +391,22 @@ def plot_feather(
         feather_sigma: u.Quantity,
         n_uv_bins: int = 10,
 ) -> plt.Figure:
+    """Plot the feathering
+
+    Args:
+        low_res_vis (np.ndarray): Low resolution visibilities
+        high_res_vis (np.ndarray): High resolution visibilities
+        uv_distance_2d (u.Quantity): 2D array of uv distances
+        high_res_weighted (np.ndarray): Weighted high resolution visibilities
+        low_res_weighted (np.ndarray): Weighted low resolution visibilities
+        feathered_vis (np.ndarray): Feathered visibilities
+        feather_centre (u.Quantity): Feather centre (in meters)
+        feather_sigma (u.Quantity): Feather sigma (in meters)
+        n_uv_bins (int, optional): Number of bins for smoothing. Defaults to 10.
+
+    Returns:
+        plt.Figure: Feather plot
+    """    
     plot_bound = (feather_centre + 25 * feather_sigma).to(u.m).value
     uv_bins = np.linspace(0, plot_bound, n_uv_bins)
     uv_bin_centers = (uv_bins[:-1] + uv_bins[1:]) / 2
@@ -401,7 +517,16 @@ def write_feathered_fits(
     wcs: WCS,
     beam: Beam,
     overwrite: bool = False,
-):
+) -> None:
+    """Write feathered data to a FITS file
+
+    Args:
+        output_file (Path): Path to the output FITS file
+        feathered_data (u.Quantity): Feathered data (must be in Jy/sr)
+        wcs (WCS): WCS of the data
+        beam (Beam): Beam of the data
+        overwrite (bool, optional): Whether to overwrite. Defaults to False.
+    """    
     header = wcs.to_header()
     header = beam.attach_to_header(header)
     data_jy = jansky_per_sr_to_jansky_per_beam(
