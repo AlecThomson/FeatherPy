@@ -31,7 +31,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "astropy>=6.0",
-  "numpy>=2",
+  "numpy",
   "reproject",
   "radio_beam>=0.3.8",
   "scipy",
