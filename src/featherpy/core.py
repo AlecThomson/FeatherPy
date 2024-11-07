@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import logging
 from pathlib import Path
 from typing import NamedTuple
@@ -265,7 +266,7 @@ def feather(
     feathered_fft = high_res_fft_weighted + low_res_fft_weighted
     feathered_fft /= high_res_weights + low_res_weights
 
-    feathered_image = fft.ifftn(fft.ifftshift(feathered_fft)).real * u.Jy / u.sr
+    feathered_image = np.real(fft.ifftn(fft.ifftshift(feathered_fft))) * u.Jy / u.sr
     feathered_image.to(
         u.Jy / u.beam, equivalencies=u.beam_angular_area(high_res_beam.sr)
     )
@@ -515,7 +516,7 @@ def plot_feather(
             (feather_centre + 5 * feather_sigma).to(u.m).value,
             color="black",
             linestyle="--",
-            label="Feather $\pm5\sigma$",
+            label=r"Feather $\pm5\sigma$",
         )
         ax.axvline(
             feather_centre.to(u.m).value,
@@ -678,8 +679,6 @@ def feather_from_fits(
 
 
 def main() -> None:
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Feather two FITS files",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
