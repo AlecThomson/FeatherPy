@@ -42,6 +42,7 @@ def tests(session: nox.Session) -> None:
     """
     Run the unit and regular tests.
     """
+    session.env["PYTHONWARNINGS"] = "ignore:invalid escape sequence"
     session.install(".[test]")
     session.run("pytest", *session.posargs)
 
