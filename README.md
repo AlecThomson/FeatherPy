@@ -18,7 +18,7 @@
 [pypi-link]:                https://pypi.org/project/FeatherPy/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/FeatherPy
 [pypi-version]:             https://img.shields.io/pypi/v/FeatherPy
-[rtd-badge]:                https://readthedocs.org/projects/FeatherPy/badge/?version=latest
+[rtd-badge]:                https://readthedocs.org/projects/featherpy/badge/?version=latest
 [rtd-link]:                 https://FeatherPy.readthedocs.io/en/latest/?badge=latest
 
 <!-- prettier-ignore-end -->
