@@ -31,20 +31,4 @@ def setup_logger() -> logging.Logger:
     return logger
 
 
-def set_verbosity(logger: logging.Logger, verbosity: int) -> None:
-    """Set the logger verbosity
-
-    Args:
-        logger (logging.Logger): The logger
-        verbosity (int): Verbosity level
-    """
-    if verbosity == 0:
-        level = logging.WARNING
-    elif verbosity == 1:
-        level = logging.INFO
-    elif verbosity >= 2:
-        level = logging.DEBUG
-    else:
-        level = logging.CRITICAL
-
-    logger.setLevel(level)
+logger = setup_logger()

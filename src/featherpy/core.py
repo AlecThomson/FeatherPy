@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import NamedTuple
 
@@ -17,13 +16,7 @@ from radio_beam import Beam
 from scipy import fft, stats
 
 from featherpy.exceptions import ShapeError, UnitError
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-logger.addHandler(ch)
-logging.captureWarnings(True)
+from featherpy.logging import logger
 
 
 class Visibilities(NamedTuple):
