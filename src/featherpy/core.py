@@ -13,11 +13,12 @@ from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
 from numpy.typing import ArrayLike
 from radio_beam import Beam
-from scipy import fft, stats
+from scipy import fft
 
 from featherpy.exceptions import ShapeError, UnitError
 from featherpy.logging import logger
 from featherpy.plotting import plot_feather
+from featherpy.weighting import ONE_STD, sigmoid
 
 
 class Visibilities(NamedTuple):
@@ -57,20 +58,6 @@ class FeatheredData(NamedTuple):
     """ The weights for the low resolution data. """
     high_res_weights: ArrayLike
     """ The weights for the high resolution data. """
-
-
-def sigmoid(x: ArrayLike, x0: float = 0, k: float = 1) -> ArrayLike:
-    """Sigmoid function
-
-    Args:
-        x (ArrayLike): x values
-        x0 (float, optional): x offset. Defaults to 0.
-        k (float, optional): growth rate. Defaults to 1.
-
-    Returns:
-        ArrayLike: sigmoid values
-    """
-    return 1 / (1 + np.exp(-k * (x - x0)))
 
 
 def make_beam_fft(
@@ -241,8 +228,8 @@ def feather(
     low_res_data_fft_corr *= low_res_scale_factor
 
     # Approximately convert 1 sigma to the slope of the sigmoid
-    one_std = -1 * np.log((1 - stats.norm.cdf(1)) * 2)
-    sigmoid_slope = one_std / feather_sigma.to(u.m).value
+
+    sigmoid_slope = ONE_STD / feather_sigma.to(u.m).value
 
     high_res_weights = sigmoid(
         x=uv_distance_2d.to(u.m).value, x0=feather_centre.to(u.m).value, k=sigmoid_slope

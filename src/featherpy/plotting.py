@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 from scipy import stats
 
-from featherpy.core import sigmoid
+from featherpy.weighting import sigmoid
 
 
 def plot_feather(

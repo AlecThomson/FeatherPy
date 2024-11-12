@@ -19,8 +19,8 @@ def setup_logger() -> logging.Logger:
     Returns:
         logging.Logger: The logger
     """
-    logger = logging.getLogger("cutout_fits")
-    logger.setLevel(logging.WARNING)
+    _logger = logging.getLogger("featherpy")
+    _logger.setLevel(logging.WARNING)
     formatter = logging.Formatter(
         fmt="[%(threadName)s] %(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
@@ -28,9 +28,9 @@ def setup_logger() -> logging.Logger:
 
     ch = logging.StreamHandler()
     ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    _logger.addHandler(ch)
 
-    return logger
+    return _logger
 
 
 logger = setup_logger()
