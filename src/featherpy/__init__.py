@@ -6,7 +6,10 @@ FeatherPy: A python package to combine radio as
 
 from __future__ import annotations
 
+from featherpy.logging import setup_logger
+
 from ._version import version as __version__
-from .core import *  # noqa: F403
+
+logger = setup_logger()
 
 __all__ = ["__version__"]
