@@ -77,7 +77,7 @@ options:
 
 Python API:
 
-```
+```python
 from featherpy.core import feather_from_fits
 ```
 

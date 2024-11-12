@@ -16,7 +16,15 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinx_copybutton",
+    "autoapi.extension",
 ]
+
+autoapi_type = "python"
+autoapi_dirs = ["../src/featherpy"]
+autoapi_member_order = "groupwise"
+autoapi_keep_files = False
+autoapi_root = "autoapi"
+autoapi_add_toctree_entry = True
 
 source_suffix = [".rst", ".md"]
 exclude_patterns = [
