@@ -6,31 +6,14 @@ import logging
 
 logging.captureWarnings(True)
 
-# Following guide from gwerbin/multiprocessing_logging.py
-# https://gist.github.com/gwerbin/e9ab7a88fef03771ab0bf3a11cf921bc
 
+logger = logging.getLogger("featherpy")
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    fmt="[%(threadName)s] %(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
-def setup_logger() -> logging.Logger:
-    """Setup a logger
-
-    Args:
-        filename (Optional[str], optional): Output log file. Defaults to None.
-
-    Returns:
-        logging.Logger: The logger
-    """
-    _logger = logging.getLogger("featherpy")
-    _logger.setLevel(logging.WARNING)
-    formatter = logging.Formatter(
-        fmt="[%(threadName)s] %(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-
-    ch = logging.StreamHandler()
-    ch.setFormatter(formatter)
-    _logger.addHandler(ch)
-
-    return _logger
-
-
-feather_logger = setup_logger()
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+logger.addHandler(ch)
