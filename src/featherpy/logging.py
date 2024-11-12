@@ -33,4 +33,4 @@ def setup_logger() -> logging.Logger:
     return _logger
 
 
-logger = setup_logger()
+feather_logger = setup_logger()
