@@ -95,8 +95,8 @@ image. I assume the 'low resolution' is sensitive to all spatial scales, as is
 typical for a single-dish radio image, and that the 'high resolution' image is
 missing short spacing scales.
 
-Weighting between the two images is done in the $uv$-plane in unites of metres.
-I assume that:
+Weighting between the two images is done in the $uv$-plane in units of metres. I
+assume that:
 
 - There is sufficient $uv$ overlap between the two images
 - The images are measured at the same frequency and with the same bandwidth
