@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Command line interface for featherpy."""
+
 from __future__ import annotations
 
 import argparse
@@ -10,6 +12,7 @@ from featherpy.core import feather_from_fits
 
 
 def main() -> None:
+    """Command line interface for featherpy."""
     parser = argparse.ArgumentParser(
         description="Feather two FITS files",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
