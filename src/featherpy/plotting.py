@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 from numpy.typing import ArrayLike
 from scipy import stats
 
-from featherpy.weighting import sigmoid
+from featherpy.weighting import ONE_STD, sigmoid
 
 
 def plot_feather(
@@ -88,8 +88,7 @@ def plot_feather(
 
     uvdists = np.linspace(0, plot_bound, 1000)
 
-    one_std = -1 * np.log((1 - stats.norm.cdf(1)) * 2)
-    sigmoid_slope = one_std / feather_sigma.to(u.m).value
+    sigmoid_slope = ONE_STD / feather_sigma.to(u.m).value
 
     ax2.plot(
         uvdists,
