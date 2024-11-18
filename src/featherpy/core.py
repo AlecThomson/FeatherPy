@@ -16,7 +16,7 @@ from radio_beam import Beam
 from scipy import fft
 
 from featherpy.exceptions import ShapeError, UnitError
-from featherpy.logging import logger
+from FeatherPy.src.featherpy.logger import logger
 from featherpy.plotting import plot_feather
 from featherpy.weighting import ONE_STD, sigmoid
 
