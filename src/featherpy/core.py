@@ -530,6 +530,7 @@ def feather_from_fits(
             feather_sigma=feather_sigma,
         )
         output_figure = output_file.with_suffix(".png")
+        logger.info(f"Saving feather plot to {output_figure}")
         fig.savefig(output_figure, bbox_inches="tight", dpi=150)
 
     write_feathered_fits(
