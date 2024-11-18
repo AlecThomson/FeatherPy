@@ -303,6 +303,7 @@ def get_data_from_fits(
     Returns:
         FitsData: data, beam, wcs
     """
+    logger.info(f"Reading data from {file_path}")
     with fits.open(file_path) as hdul:
         hdu = hdul[ext]
         data = hdu.data.squeeze()
@@ -386,6 +387,7 @@ def write_feathered_fits(
         beam (Beam): Beam of the data
         overwrite (bool, optional): Whether to overwrite. Defaults to False.
     """
+    logger.info(f"Writing feathered data to {output_file}")
     header = wcs.to_header()
     header = beam.attach_to_header(header)
     data_jy = jansky_per_sr_to_jansky_per_beam(data_jy_sr=feathered_data, beam=beam)
@@ -405,6 +407,7 @@ def feather_from_fits(
     high_res_unit: u.Unit | None = None,
     do_feather_plot: bool = False,
     overwrite: bool = False,
+    low_res_scale_factor: float | None = None,
 ) -> None:
     """Feather two FITS files
 
@@ -420,6 +423,7 @@ def feather_from_fits(
         high_res_unit (u.Unit | None, optional): Units of high resolution data. Defaults to None.
         do_feather_plot (bool, optional): Make feather plots. Defaults to False.
         overwrite (bool, optional): Overwrite output data. Defaults to False.
+        low_res_scale_factor (float | None, optional): Scaling factor for the low res data. Defaults to None.
 
     Raises:
         FileExistsError: If output file exists and overwrite is False
@@ -495,6 +499,7 @@ def feather_from_fits(
         uv_distance_2d=visibilities.uv_distance_2d,
         feather_centre=feather_centre,
         feather_sigma=feather_sigma,
+        low_res_scale_factor=low_res_scale_factor,
     )
 
     if do_feather_plot:

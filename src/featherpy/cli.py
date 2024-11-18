@@ -57,6 +57,13 @@ def main() -> None:
         default=None,
     )
     parser.add_argument(
+        "-f",
+        "--scaling-factor",
+        type=float,
+        help="Scaling factor for the low resolution data. If not provided, the scaling factor will be calculated from the data",
+        default=None,
+    )
+    parser.add_argument(
         "-p",
         "--do-feather-plot",
         action="store_true",
@@ -87,6 +94,7 @@ def main() -> None:
         else None,
         do_feather_plot=args.do_feather_plot,
         overwrite=args.overwrite,
+        low_res_scale_factor=args.scaling_factor,
     )
 
 
