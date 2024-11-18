@@ -133,6 +133,10 @@ def fft_data(
         u.Jy / u.sr, equivalencies=u.beam_angular_area(high_res_beam.sr)
     )
 
+    # Nan values are not allowed in the FFT
+    low_res_data[~np.isfinite(low_res_data)] = 0 * u.Jy / u.sr
+    high_res_data[~np.isfinite(high_res_data)] = 0 * u.Jy / u.sr
+
     pix_scales = proj_plane_pixel_scales(wcs.celestial)
     assert pix_scales[0] == pix_scales[1]
     pix_scale = pix_scales[0] * u.deg
@@ -150,6 +154,14 @@ def fft_data(
     u_2d_array, v_2d_array = np.meshgrid(u_array, v_array)
     uv_distance_2d = np.hypot(u_2d_array, v_2d_array) * wavelength.to(u.m)
 
+    if not np.isfinite(low_res_data_fft).all():
+        msg = "Low resolution data contains non-finite values"
+        raise ValueError(msg)
+    if not np.isfinite(high_res_data_fft).all():
+        msg = "High resolution data contains non-finite values"
+        raise ValueError(msg)
+    
+
     # Deconvolve the low resolution beam
     low_res_data_fft_corr = low_res_data_fft / np.abs(low_res_beam_fft)
     # Reconvolve with the high resolution beam
@@ -160,6 +172,10 @@ def fft_data(
         low_res_data_fft_corr[
             uv_distance_2d.to(u.m).value > outer_uv_cut.to(u.m).value
         ] = 0
+
+    if (low_res_data_fft_corr == 0).all():
+        msg = f"All low resolution data is zero after deconvolution ({outer_uv_cut=} too aggressive?)"
+        raise ValueError(msg)
 
     return Visibilities(low_res_data_fft_corr, high_res_data_fft, uv_distance_2d)
 
