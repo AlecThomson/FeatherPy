@@ -90,6 +90,7 @@ def fft_data(
     wcs: WCS,
     wavelength: u.Quantity,
     outer_uv_cut: u.Quantity | None = None,
+    deconvolve_beam: bool = True,
 ) -> Visibilities:
     """Apply FFTs and deconvolution to the data
 
@@ -160,10 +161,15 @@ def fft_data(
     if not np.isfinite(high_res_data_fft).all():
         msg = "High resolution data contains non-finite values"
         raise ValueError(msg)
-    
 
     # Deconvolve the low resolution beam
-    low_res_data_fft_corr = low_res_data_fft / np.abs(low_res_beam_fft)
+    low_res_data_fft_corr = low_res_data_fft.copy()
+    if deconvolve_beam:
+        logger.info("Deconvolving low resolution data")
+        low_res_data_fft_corr = low_res_data_fft_corr / np.abs(low_res_beam_fft)
+    else:
+        logger.info("Skipping deconvolution of low resolution data")
+
     # Reconvolve with the high resolution beam
     low_res_data_fft_corr *= np.abs(high_res_beam_fft)
     low_res_data_fft_corr[~np.isfinite(low_res_data_fft_corr)] = 0
@@ -424,6 +430,7 @@ def feather_from_fits(
     do_feather_plot: bool = False,
     overwrite: bool = False,
     low_res_scale_factor: float | None = None,
+    deconvolve_beam: bool = True,
 ) -> None:
     """Feather two FITS files
 
@@ -506,6 +513,7 @@ def feather_from_fits(
         wcs=high_res_wcs,
         wavelength=frequency.to(u.m, equivalencies=u.spectral()),
         outer_uv_cut=outer_uv_cut,
+        deconvolve_beam=deconvolve_beam,
     )
 
     feathered_data = feather(

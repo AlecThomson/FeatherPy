@@ -75,6 +75,12 @@ def main() -> None:
         action="store_true",
         help="Overwrite the output file if it exists",
     )
+    parser.add_argument(
+        "-d",
+        "--skip-deconvolution",
+        action="store_true",
+        help="Skip the deconvolution step",
+    )
 
     args = parser.parse_args()
 
@@ -95,6 +101,7 @@ def main() -> None:
         do_feather_plot=args.do_feather_plot,
         overwrite=args.overwrite,
         low_res_scale_factor=args.scaling_factor,
+        deconvolve_beam=not args.skip_deconvolution,
     )
 
 
