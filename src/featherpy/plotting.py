@@ -6,19 +6,19 @@ import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from scipy import stats
 
 from featherpy.weighting import ONE_STD, sigmoid
 
 
 def plot_feather(
-    low_res_vis: ArrayLike,
-    high_res_vis: ArrayLike,
+    low_res_vis: NDArray[np.complex128],
+    high_res_vis: NDArray[np.complex128],
     uv_distance_2d: u.Quantity,
-    high_res_weighted: ArrayLike,
-    low_res_weighted: ArrayLike,
-    feathered_vis: ArrayLike,
+    high_res_weighted: NDArray[np.float64],
+    low_res_weighted: NDArray[np.float64],
+    feathered_vis: NDArray[np.complex128],
     feather_centre: u.Quantity,
     feather_sigma: u.Quantity,
     n_uv_bins: int = 10,
@@ -26,12 +26,12 @@ def plot_feather(
     """Plot the feathering
 
     Args:
-        low_res_vis (ArrayLike): Low resolution visibilities
-        high_res_vis (ArrayLike): High resolution visibilities
+        low_res_vis (NDArray[np.complex128]): Low resolution visibilities
+        high_res_vis (NDArray[np.complex128]): High resolution visibilities
         uv_distance_2d (u.Quantity): 2D array of uv distances
-        high_res_weighted (ArrayLike): Weighted high resolution visibilities
-        low_res_weighted (ArrayLike): Weighted low resolution visibilities
-        feathered_vis (ArrayLike): Feathered visibilities
+        high_res_weighted (NDArray[np.float64]): Weighted high resolution visibilities
+        low_res_weighted (NDArray[np.float64]): Weighted low resolution visibilities
+        feathered_vis (NDArray[np.complex128]): Feathered visibilities
         feather_centre (u.Quantity): Feather centre (in meters)
         feather_sigma (u.Quantity): Feather sigma (in meters)
         n_uv_bins (int, optional): Number of bins for smoothing. Defaults to 10.
@@ -55,8 +55,7 @@ def plot_feather(
         bins=uv_bins,
     )
 
-    fig, axs = plt.subplots(3, 1, sharex=True, figsize=(8, 18))
-    ax1, ax2, ax3 = axs
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(8, 18))
     sc_alpha = 0.1
     _ = ax1.plot(
         uv_distance_2d.ravel(),

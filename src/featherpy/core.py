@@ -11,7 +11,7 @@ import reproject as rp
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
-from numpy.typing import ArrayLike
+from numpy.typing import NDArray
 from radio_beam import Beam
 from scipy import fft
 
@@ -24,9 +24,9 @@ from featherpy.weighting import ONE_STD, sigmoid
 class Visibilities(NamedTuple):
     """Data in the Fourier domain."""
 
-    low_res_data_fft_corr: ArrayLike
+    low_res_data_fft_corr: NDArray[np.complex128]
     """ The low resolution data, deconvolved with the low resolution beam and reconvolved with the high resolution beam. """
-    high_res_data_fft: ArrayLike
+    high_res_data_fft: NDArray[np.complex128]
     """ The high resolution data. """
     uv_distance_2d: u.Quantity
     """ The 2D array of uv distances. """
@@ -48,23 +48,23 @@ class FeatheredData(NamedTuple):
 
     feathered_image: u.Quantity
     """ The feathered image. """
-    feathered_fft: ArrayLike
+    feathered_fft: NDArray[np.complex128]
     """ The feathered data in the Fourier domain. """
-    low_res_fft_weighted: ArrayLike
+    low_res_fft_weighted: NDArray[np.complex128]
     """ The low resolution data in the Fourier domain, weighted for feathering. """
-    high_res_fft_weighted: ArrayLike
+    high_res_fft_weighted: NDArray[np.complex128]
     """ The high resolution data in the Fourier domain, weighted for feathering. """
-    low_res_weights: ArrayLike
+    low_res_weights: NDArray[np.float64]
     """ The weights for the low resolution data. """
-    high_res_weights: ArrayLike
+    high_res_weights: NDArray[np.float64]
     """ The weights for the high resolution data. """
 
 
 def make_beam_fft(
     beam: Beam,
-    data_shape: tuple[int, int],
+    data_shape: tuple[int, ...],
     pix_scale: u.Quantity,
-) -> ArrayLike:
+) -> NDArray[np.complex128]:
     """Make the FFT of a beam in the same shape as the data
 
     Args:
@@ -73,13 +73,13 @@ def make_beam_fft(
         pix_scale (u.Quantity): Pixel scale (assumed to be the same in x and y)
 
     Returns:
-        ArrayLike: Beam FFT array
+        NDArray[np.complex128]: Beam FFT array
     """
     beam_image = beam.as_kernel(
         pix_scale, x_size=data_shape[1], y_size=data_shape[0]
     ).array
     beam_image /= beam_image.sum()
-    return fft.fftshift(fft.fft2(beam_image))
+    return np.array(fft.fftshift(fft.fft2(beam_image)))
 
 
 def fft_data(
@@ -142,13 +142,19 @@ def fft_data(
     assert pix_scales[0] == pix_scales[1]
     pix_scale = pix_scales[0] * u.deg
 
+    # Pad both images for FFT
+    low_res_pad = np.pad(low_res_data, low_res_data.shape, mode="reflect")
+    high_res_pad = np.pad(high_res_data, high_res_data.shape, mode="reflect")
+
     # Make the beam FFTs
-    low_res_beam_fft = make_beam_fft(low_res_beam, low_res_data.shape, pix_scale)
-    high_res_beam_fft = make_beam_fft(high_res_beam, high_res_data.shape, pix_scale)
+    low_res_beam_fft = make_beam_fft(low_res_beam, tuple(low_res_pad.shape), pix_scale)
+    high_res_beam_fft = make_beam_fft(
+        high_res_beam, tuple(high_res_pad.shape), pix_scale
+    )
 
     # FFT the data
-    low_res_data_fft = fft.fftshift(fft.fftn(low_res_data))
-    high_res_data_fft = fft.fftshift(fft.fftn(high_res_data))
+    low_res_data_fft = fft.fftshift(fft.fftn(low_res_beam_fft))
+    high_res_data_fft = fft.fftshift(fft.fftn(high_res_beam_fft))
     v_size, u_size = low_res_data_fft.shape
     u_array = fft.fftshift(fft.fftfreq(u_size, d=pix_scale.to(u.radian).value))
     v_array = fft.fftshift(fft.fftfreq(v_size, d=pix_scale.to(u.radian).value))
@@ -187,23 +193,25 @@ def fft_data(
 
 
 def feather(
-    low_res_data_fft_corr: ArrayLike,
-    high_res_data_fft: ArrayLike,
+    low_res_data_fft_corr: NDArray[np.complex128],
+    high_res_data_fft: NDArray[np.complex128],
     high_res_beam: Beam,
     uv_distance_2d: u.Quantity,
     feather_centre: u.Quantity,
     feather_sigma: u.Quantity,
+    original_shape: tuple[int, int],
     low_res_scale_factor: float | None = None,
 ) -> FeatheredData:
     """Feather the data
 
     Args:
-        low_res_data_fft_corr (ArrayLike): A 2D array of the low resolution data in the Fourier domain
-        high_res_data_fft (ArrayLike): A 2D array of the high resolution data in the Fourier domain
+        low_res_data_fft_corr (NDArray[np.complex128]): A 2D array of the low resolution data in the Fourier domain
+        high_res_data_fft (NDArray[np.complex128]): A 2D array of the high resolution data in the Fourier domain
         high_res_beam (Beam): The high resolution beam
         uv_distance_2d (u.Quantity): A 2D array of the uv distances
         feather_centre (u.Quantity): The centre of the feathering function (in meters)
         feather_sigma (u.Quantity): The width of the feathering function (in meters)
+        original_shape (tuple[int, int]): The original shape of the data
         low_res_scale_factor (float | None, optional): Scaling factor for the low res data. Defaults to None.
 
     Raises:
@@ -272,6 +280,13 @@ def feather(
     feathered_image.to(
         u.Jy / u.beam, equivalencies=u.beam_angular_area(high_res_beam.sr)
     )
+
+    start_x, start_y = original_shape
+    len_x, len_y = original_shape
+
+    feathered_image = feathered_image[
+        start_x : start_x + len_x, start_y : start_x + len_y
+    ]
 
     return FeatheredData(
         feathered_image=feathered_image,
@@ -523,6 +538,7 @@ def feather_from_fits(
         uv_distance_2d=visibilities.uv_distance_2d,
         feather_centre=feather_centre,
         feather_sigma=feather_sigma,
+        original_shape=high_res_data.shape,
         low_res_scale_factor=low_res_scale_factor,
     )
 
