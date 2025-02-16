@@ -143,8 +143,9 @@ def fft_data(
     pix_scale = pix_scales[0] * u.deg
 
     # Pad both images for FFT
-    low_res_pad = np.pad(low_res_data, low_res_data.shape, mode="reflect")
-    high_res_pad = np.pad(high_res_data, high_res_data.shape, mode="reflect")
+    padder = ((low_res_data.shape[0],), (low_res_data.shape[1],))
+    low_res_pad = np.pad(low_res_data, padder, mode="reflect")
+    high_res_pad = np.pad(high_res_data, padder, mode="reflect")
 
     # Make the beam FFTs
     low_res_beam_fft = make_beam_fft(low_res_beam, tuple(low_res_pad.shape), pix_scale)
@@ -153,8 +154,8 @@ def fft_data(
     )
 
     # FFT the data
-    low_res_data_fft = fft.fftshift(fft.fftn(low_res_beam_fft))
-    high_res_data_fft = fft.fftshift(fft.fftn(high_res_beam_fft))
+    low_res_data_fft = fft.fftshift(fft.fftn(low_res_pad))
+    high_res_data_fft = fft.fftshift(fft.fftn(high_res_pad))
     v_size, u_size = low_res_data_fft.shape
     u_array = fft.fftshift(fft.fftfreq(u_size, d=pix_scale.to(u.radian).value))
     v_array = fft.fftshift(fft.fftfreq(v_size, d=pix_scale.to(u.radian).value))
@@ -285,7 +286,7 @@ def feather(
     len_x, len_y = original_shape
 
     feathered_image = feathered_image[
-        start_x : start_x + len_x, start_y : start_x + len_y
+        start_x : start_x + len_x, start_y : start_y + len_y
     ]
 
     return FeatheredData(
